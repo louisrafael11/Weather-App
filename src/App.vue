@@ -47,7 +47,7 @@
                 </v-card-subtitle>
                 <v-card-text>
                   <v-row>
-                    <v-col cols="6">
+                    <v-col cols="6" class="hover-effect">
                       <v-list-item>
                         <v-list-item-icon>
                           <v-icon>mdi-thermometer</v-icon>
@@ -58,7 +58,7 @@
                         </v-list-item-content>
                       </v-list-item>
                     </v-col>
-                    <v-col cols="6">
+                    <v-col cols="6" class="hover-effect">
                       <v-list-item>
                         <v-list-item-icon>
                           <v-icon>mdi-water-percent</v-icon>
@@ -69,7 +69,7 @@
                         </v-list-item-content>
                       </v-list-item>
                     </v-col>
-                    <v-col cols="6">
+                    <v-col cols="6" class="hover-effect">
                       <v-list-item>
                         <v-list-item-icon>
                           <v-icon>mdi-weather-windy</v-icon>
@@ -80,7 +80,7 @@
                         </v-list-item-content>
                       </v-list-item>
                     </v-col>
-                    <v-col cols="6">
+                    <v-col cols="6" class="hover-effect">
                       <v-list-item>
                         <v-list-item-icon>
                           <v-icon>mdi-thermometer-lines</v-icon>
@@ -92,13 +92,6 @@
                       </v-list-item>
                     </v-col>
                   </v-row>
-                </v-card-text>
-              </v-card>
-
-              <v-card v-if="forecast" class="mt-4">
-                <v-card-title class="text-h6">5-Day Forecast</v-card-title>
-                <v-card-text>
-                  <v-chart class="chart" :option="chartOption" autoresize />
                 </v-card-text>
               </v-card>
             </v-card-text>
@@ -152,14 +145,6 @@
 </template>
 
 <script>
-import { use } from 'echarts/core'
-import { CanvasRenderer } from 'echarts/renderers'
-import { LineChart } from 'echarts/charts'
-import { GridComponent, TooltipComponent, TitleComponent, LegendComponent } from 'echarts/components'
-import VChart, { THEME_KEY } from 'vue-echarts'
-
-use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, TitleComponent, LegendComponent])
-
 export default {
   name: 'App',
 
@@ -167,44 +152,13 @@ export default {
     return {
       city: '',
       weather: null,
-      forecast: null,
       error: '',
       loading: false,
       showDetails: false,
       backgroundColor: '#E3F2FD',
-      chartOption: {
-        title: {
-          text: '5-Day Temperature Forecast'
-        },
-        tooltip: {
-          trigger: 'axis'
-        },
-        xAxis: {
-          type: 'category',
-          data: []
-        },
-        yAxis: {
-          type: 'value',
-          axisLabel: {
-            formatter: '{value} °C'
-          }
-        },
-        series: [{
-          name: 'Temperature',
-          type: 'line',
-          data: [],
-          smooth: true
-        }]
-      }
     }
   },
   computed: {
-    components: {
-    VChart
-  },
-  provide: {
-    [THEME_KEY]: 'light'
-  },
     weatherIcon() {
       if (!this.weather) return ''
       const condition = this.weather.weather[0].main.toLowerCase()
@@ -240,25 +194,16 @@ export default {
         )
         const weatherData = await weatherResponse.json()
 
-        const forecastResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?q=${this.city}&units=metric&appid=${apiKey}`
-        )
-        const forecastData = await forecastResponse.json()
-
-        if (weatherData.cod === 200 && forecastData.cod === '200') {
+        if (weatherData.cod === 200) {
           this.weather = weatherData
-          this.forecast = forecastData
           this.updateBackgroundColor(weatherData.weather[0].main)
-          this.updateForecastChart(forecastData)
         } else {
           this.error = 'City not found.'
           this.weather = null
-          this.forecast = null
         }
       } catch (error) {
         this.error = 'Unable to fetch weather data.'
         this.weather = null
-        this.forecast = null
       }
       this.loading = false
     },
@@ -282,13 +227,6 @@ export default {
         default:
           this.backgroundColor = '#E3F2FD'
       }
-    },
-    updateForecastChart(forecastData) {
-      const temperatures = forecastData.list.map(item => item.main.temp);
-      const dates = forecastData.list.map(item => new Date(item.dt * 1000).toLocaleDateString());
-      
-      this.chartOption.xAxis.data = dates;
-      this.chartOption.series[0].data = temperatures;
     }
   }
 }
@@ -298,5 +236,13 @@ export default {
 .chart {
   width: 100%;
   height: 300px;
+}
+.hover-effect {
+  transition: transform 0.2s;
+}
+
+.hover-effect:hover {
+  transform: scale(1.05);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 </style>
